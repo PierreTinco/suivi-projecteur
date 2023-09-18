@@ -1,0 +1,108 @@
+<div class="flex flex-col mt-6" *ngIf="data.arrMainNgFor.length >0">
+      <input *ngIf="data.searchBar" [(ngModel)]="searchText"  type="text"
+      class="shadow-sm block w-2/5 sm:text-sm border-gray-300 rounded-md"  [placeholder]="data.searchBar.placeholder">
+
+  <div class="flex flex-row mt-5 w-full" *ngIf="data.filter">
+    <div *ngFor="let item of data.filter;let i = index" class="flex flex-col w-1/4 mr-2">
+    <select
+    [id]="'select'+i"
+    [(ngModel)]="item.filterNgModelValue"
+    (change)="filterFunction($event,item,i)"
+    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+      <option value="" disabled selected>{{item.placeholder}}</option>
+      <option *ngFor="let option of item.option" class="text-gray-700" value="{{item.keyOptionFilter =='' ? option : option[item.keyOptionFilter]}}">
+      {{item.optionDisplaykey =='' ? option : option[item.optionDisplaykey]}}</option>
+    </select>
+
+    <span *ngIf="item.filterValue != ''" class="inline-flex items-center px-1.5 py-1.5 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800
+     w-1/2 justify-center mt-2 hover:bg-red-100 hover:text-red-600 cursor-pointer" (click)="removeFilter(item,i)"> {{item.filterValue}} </span>
+
+  </div>
+  </div>
+      <div class="flex flex-col mt-5 pb-7"  [ngClass]="data.height === undefined ? 'max-h-[70vh]' : data.height"  >
+        <div class="flex-grow overflow-auto border border-gray-200 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200 relative">
+          <thead class="bg-gray-50 ">
+          <tr>
+            <th *ngFor="let item of data.arrHeader " scope="col" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn" class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50  ">
+              {{item.name}}
+            </th>
+            <th *ngIf="data.actions" scope="col" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn" class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0  bg-gray-50 ">
+             {{data.actions.length > 1 ? 'actions' : 'action'}}
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="data.page !== undefined" >
+
+              <tr *ngFor="let item of data.arrMainNgFor | filter:searchText | paginate: { itemsPerPage: 10, currentPage: data.page }" class="bg-white even:bg-gray-50 border border-gray-200">
+                <td *ngFor="let val of data.arrHeader" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn"  class="whitespace-nowrap font-normal  text-gray-600 text-sm"   >
+                  <span 
+                  [ngClass]="val.badge  ? 
+                  'rounded text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-0.5 inline-flex items-center' : ''"  
+                  *ngIf="!Array.isArray(item[val.key]) && (item?.[val.key] !== null || item?.[val.key]?.[val.subValue] !== null) " >
+                                  <!-- dont use date for badge value or subValue -->
+                  {{ val.subValue ?  item?.[val.key]?.[val.subValue] : 
+                    !val.date ? item?.[val.key] : item?.[val.key] | date :'shortDate' : '' : 'fr' }}
+                  </span>
+                  <div  *ngIf="Array.isArray(item[val.key])">
+                  <span *ngFor="let subObjValues of item[val.key]"  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
+                    {{subObjValues?.[val.subValue]}}
+                  </span>
+                </div>
+                </td>
+                <td  *ngIf="data.actions" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn" class="whitespace-nowrap text-sm font-medium flex flex-row">
+                  <div *ngFor="let action of data.actions">
+                    <div  *ngIf="!action.if;else ifcase">
+                      <a (click)="action.method(item)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer mr-2"> {{action.text}}</a>
+                    </div>
+                    <ng-template #ifcase>
+                      <a *ngIf="action.if.equal ? item[action.if.key] === action.if.val : item[action.if.key] !== action.if.val" (click)="action.method(item)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer mr-2"> {{action.text}}</a>
+                    </ng-template>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+
+
+            <ng-container  *ngIf="data.page === undefined">
+          <tr *ngFor="let item of data.arrMainNgFor | filter:searchText" class="bg-white even:bg-gray-50 border border-gray-200">
+            <td *ngFor="let val of data.arrHeader" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn"  class="whitespace-nowrap font-normal  text-gray-600 text-sm" [style]="val.maxWidth ? 'overflow-wrap: break-word;white-space: normal;max-width: '+val.maxWidth : ''"  >
+              <span 
+              [ngClass]="val.badge  ? 
+              'rounded text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-0.5 inline-flex items-center' : ''"  
+              *ngIf="!Array.isArray(item[val.key]) && (item?.[val.key] !== null || item?.[val.key]?.[val.subValue] !== null) " >
+                              <!-- dont use date for badge value or subValue -->
+              {{ val.subValue ?  item?.[val.key]?.[val.subValue] : 
+                !val.date ? item?.[val.key] : item?.[val.key] | date :'shortDate' : '' : 'fr' }}
+              </span>
+              <div  *ngIf="Array.isArray(item[val.key])">
+              <span *ngFor="let subObjValues of item[val.key]"  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
+                {{subObjValues?.[val.subValue]}}
+              </span>
+            </div>
+            </td>
+            <td  *ngIf="data.actions" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn" class="whitespace-nowrap text-sm font-medium flex flex-row">
+              <div *ngFor="let action of data.actions">
+                <div  *ngIf="!action.if;else ifcase">
+                  <a (click)="action.method(item)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer mr-2"> {{action.text}}</a>
+                </div>
+                <ng-template #ifcase>
+                  <a *ngIf="action.if.equal ? item[action.if.key] === action.if.val : item[action.if.key] !== action.if.val" (click)="action.method(item)" class="text-indigo-600 hover:text-indigo-900 cursor-pointer mr-2"> {{action.text}}</a>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="data.page !== undefined" class="w-full flex justify-center mt-2" >
+        <pagination-controls (pageChange)="data.page = $event"></pagination-controls>
+
+      </div>
+
+    </div>
+  </div>
