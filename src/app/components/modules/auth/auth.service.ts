@@ -8,7 +8,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 })
 export class AuthService {
 
-  constructor(private http : HttpClient,private alert : AlertService,private router : Router) { }
+  constructor(private alert : AlertService,private router : Router) { }
 
   login(email : string, password : string){
     const auth = getAuth();
@@ -17,6 +17,7 @@ export class AuthService {
         const user = userCredential.user;
         localStorage.setItem('user', JSON.stringify(user));
         this.router.navigate(['/user']);
+        this.alert.success('Sign-in successful')
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -34,6 +35,7 @@ export class AuthService {
       const user = userCredential.user;
       localStorage.setItem('user', JSON.stringify(user));
       this.router.navigate(['/user']);
+      this.alert.success('Account created')
     })
     .catch((error) => {
       const errorCode = error.code;

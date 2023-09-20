@@ -15,6 +15,7 @@ export class UserService {
     const auth = getAuth();
     signOut(auth).then(() => {
       this.alertService.success('Sign-out successful.');
+      localStorage.clear();
     }).catch((error) => {
       this.alertService.error('An error happened.');
     });

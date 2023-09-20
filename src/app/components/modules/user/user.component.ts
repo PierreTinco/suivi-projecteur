@@ -32,7 +32,6 @@ messages :any[] = []
 
   ngOnInit(): void {
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log(user)
     
     if (user) {
       const db = ref(getDatabase());
@@ -71,7 +70,10 @@ messages :any[] = []
 
   connect(projo: Projecteur) {
     const ws = new WebSocket(projo.url);
-  
+    ws.onopen = () => {
+      projo.connexion = 'connecté'
+    }
+
     ws.onmessage = (message) => {
       projo.status = message.data
       console.log(message.data)
