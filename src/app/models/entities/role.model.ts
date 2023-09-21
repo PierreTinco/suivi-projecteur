@@ -2,5 +2,6 @@ export interface Projecteur {
     name? : string;
     connexion? : string;
     status? : string;
-    url: string
+    url: string,
+    alreadyAlert: boolean
 }

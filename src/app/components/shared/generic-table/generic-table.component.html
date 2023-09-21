@@ -68,9 +68,10 @@
             <ng-container  *ngIf="data.page === undefined">
           <tr *ngFor="let item of data.arrMainNgFor | filter:searchText" class="bg-white even:bg-gray-50 border border-gray-200">
             <td *ngFor="let val of data.arrHeader" [ngClass]="data.paddingColumn  === undefined ? 'px-6 py-4' : data.paddingColumn"  class="whitespace-nowrap font-normal  text-gray-600 text-sm" [style]="val.maxWidth ? 'overflow-wrap: break-word;white-space: normal;max-width: '+val.maxWidth : ''"  >
-              <span 
+              <span
               [ngClass]="val.badge  ? 
-              'rounded text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-0.5 inline-flex items-center' : ''"  
+              'rounded text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-0.5 inline-flex items-center' : ''"
+              [class] = "item[val.key] == '' ? 'hidden' : '' "
               *ngIf="!Array.isArray(item[val.key]) && (item?.[val.key] !== null || item?.[val.key]?.[val.subValue] !== null) " >
                               <!-- dont use date for badge value or subValue -->
               {{ val.subValue ?  item?.[val.key]?.[val.subValue] : 

@@ -5,6 +5,7 @@ import { Projecteur } from 'src/app/models/entities/role.model';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { UserService } from './user.service';
 import { Router } from '@angular/router';
+import { AlertService } from '../../shared/services/alert.service';
 
 @Component({
   selector: 'app-user',
@@ -28,7 +29,8 @@ messages :any[] = []
     height: 'max-h-[80vh]'
 
   }
-  constructor(private userService: UserService, private router: Router) { }
+
+  constructor(private userService: UserService, private router: Router, private alertService: AlertService) { }
 
   ngOnInit(): void {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -47,11 +49,12 @@ messages :any[] = []
                   name: clef,
                   url: val as string,
                   connexion: '',
-                  status:''
-                })
+                  status:'',
+                  alreadyAlert: false
+                });
               }
 
-              this.data.arrMainNgFor.forEach((el : any)=>{
+              this.data.arrMainNgFor.forEach((el : any) => {
                 this.connect(el);
               })
             } else {
@@ -72,16 +75,41 @@ messages :any[] = []
     const ws = new WebSocket(projo.url);
     ws.onopen = () => {
       projo.connexion = 'connecté'
+      if(projo.alreadyAlert) {
+        this.alertService.success(projo.name+' reconnectée');
+      }
+      projo.alreadyAlert = false;
     }
-
+    
     ws.onmessage = (message) => {
       projo.status = message.data
       console.log(message.data)
     };
+
+    ws.onclose = (event) => {
+      console.log("close event", event);
+      if(!projo.alreadyAlert) {
+        this.alertService.error(projo.name+' déconnectée');
+        this.sendMail(projo);
+      }
+      projo.connexion = 'deconnecté';
+      projo.status = '';
+      projo.alreadyAlert = true;
+      this.connect(projo);
+    }
   
     ws.onerror = (error) => {
+      this.alertService.error('Erreur connexion '+projo.name)
       console.log(`WebSocket error on server `, error);
+      projo.connexion = 'deconnecté';
     };
+  }
+
+
+  sendMail(projo: Projecteur) {
+    this.userService.sendEmail('pierre.tinco@outlook.com', 'Erreur de connexion: '+projo.name, ' La connexion avec le projecteur: '+projo.name+' a cessé de fonctionner.\nAdresse concernée: '+projo.url)
+      .then(response => console.log('Email sent successfully', response))
+      .catch(error => console.error('Error sending email', error));
   }
 
   disconnectUser() {
