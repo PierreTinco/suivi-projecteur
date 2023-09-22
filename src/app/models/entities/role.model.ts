@@ -3,5 +3,6 @@ export interface Projecteur {
     connexion? : string;
     status? : string;
     url: string,
-    alreadyAlert: boolean
+    alreadyAlert: boolean,
+    ws: WebSocket
 }

@@ -20,13 +20,14 @@ messages :any[] = []
     arrHeader: [
       { name: 'Nom du projecteur', key: 'name' },
       { name: 'Etat de connexion', key: 'connexion', badge: true },
-      { name: 'Statut du projecteur', key: 'status', badge: true },
+      { name: 'Statut du projecteur', key: 'status', badge: true }
     ],
     arrMainNgFor: [],
     searchBar: {
       placeholder: 'Rechercher un projecteur',
     },
-    height: 'max-h-[80vh]'
+    height: 'max-h-[80vh]',
+    actions: []
 
   }
 
@@ -50,12 +51,14 @@ messages :any[] = []
                   url: val as string,
                   connexion: '',
                   status:'',
-                  alreadyAlert: false
+                  alreadyAlert: false,
+                  ws: null
                 });
               }
 
               this.data.arrMainNgFor.forEach((el : any) => {
                 this.connect(el);
+                
               })
             } else {
               console.log("No data available");
@@ -69,11 +72,20 @@ messages :any[] = []
       });
 
     }
+
+    this.data.actions = [{
+      text: 'stop projecteur',
+      method: this.stopProjecteur, if: {key: 'connexion', val: 'connecté', equal: true} 
+    },
+    {
+      text: 'start projecteur',
+      method: this.connect, if: {key: 'connexion', val: 'connecté', equal: false}
+    }]
   }
 
-  connect(projo: Projecteur) {
-    const ws = new WebSocket(projo.url);
-    ws.onopen = () => {
+  connect = (projo: Projecteur) => {
+    projo.ws = new WebSocket(projo.url);
+    projo.ws.onopen = () => {
       projo.connexion = 'connecté'
       if(projo.alreadyAlert) {
         this.alertService.success(projo.name+' reconnectée');
@@ -81,12 +93,12 @@ messages :any[] = []
       projo.alreadyAlert = false;
     }
     
-    ws.onmessage = (message) => {
+    projo.ws.onmessage = (message) => {
       projo.status = message.data
       console.log(message.data)
     };
 
-    ws.onclose = (event) => {
+    projo.ws.onclose = (event) => {
       console.log("close event", event);
       if(!projo.alreadyAlert) {
         this.alertService.error(projo.name+' déconnectée');
@@ -95,16 +107,20 @@ messages :any[] = []
       projo.connexion = 'deconnecté';
       projo.status = '';
       projo.alreadyAlert = true;
-      this.connect(projo);
     }
   
-    ws.onerror = (error) => {
+    projo.ws.onerror = (error) => {
       this.alertService.error('Erreur connexion '+projo.name)
       console.log(`WebSocket error on server `, error);
       projo.connexion = 'deconnecté';
     };
   }
 
+
+  stopProjecteur = (projo: Projecteur) => {
+    projo.ws.send('stop');
+    projo.connexion = 'deconnecté'
+  }
 
   sendMail(projo: Projecteur) {
     this.userService.sendEmail('pierre.tinco@outlook.com', 'Erreur de connexion: '+projo.name, ' La connexion avec le projecteur: '+projo.name+' a cessé de fonctionner.\nAdresse concernée: '+projo.url)
